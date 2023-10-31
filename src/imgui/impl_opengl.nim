@@ -11,7 +11,7 @@
 import ../imgui, nimgl/opengl
 
 var
-  gGlslVersionString: cstring = "#version 330 core"
+  gGlslVersionString: cstring = when not defined(emscripten): "#version 330 core" else: "#version 300 es"
   gFontTexture: uint32 = 0
   gShaderHandle: uint32 = 0
   gVertHandle: uint32 = 0
