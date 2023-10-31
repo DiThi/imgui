@@ -8,7 +8,7 @@
 ##
 ## HACK: To be honest, there are a lot of things to optimize in here if you have control of every step.
 
-import ../imgui, nimgl/opengl
+import ../imgui, opengl
 
 var
   gGlslVersionString: cstring = when not defined(emscripten): "#version 330 core" else: "#version 300 es"

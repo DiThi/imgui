@@ -11,6 +11,7 @@ skipDirs    = @["tests"]
 
 requires "nim >= 1.0.0" # 1.0.0 promises that it will have backward compatibility
 requires "https://github.com/heysokam/nglfw.git"
+requires "https://github.com/nimgl/opengl.git"
 
 task gen, "Generate bindings from source":
   exec("nim c -r tools/generator.nim")
