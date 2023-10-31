@@ -26,8 +26,8 @@ proc currentSourceDir(): string {.compileTime.} =
   result = result[0 ..< result.rfind("/")]
 
 {.passC: "-I" & currentSourceDir() & "/imgui/private/cimgui" & " -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS=1".}
-when defined(linux) and not defined(emscripten):
-  {.passL: "-Xlinker -rpath .".}
+# when defined(linux) and not defined(emscripten):
+#   {.passL: "-Xlinker -rpath .".}
 
 when not defined(cpp) or defined(cimguiDLL):
   when defined(windows):
