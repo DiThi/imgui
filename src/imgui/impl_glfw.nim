@@ -6,7 +6,8 @@
 ## Feel free to use and modify this implementation.
 ## This needs to be used along with a Renderer.
 
-import ../imgui, nglfw
+import ../imgui
+import nglfw
 # import nimgl/glfw
 
 # when defined(windows):
