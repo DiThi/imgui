@@ -101,6 +101,7 @@ void main() {
 }
   """
   var fragment_shader_glsl: cstring = """
+precision mediump float;
 in vec2 Frag_UV;
 in vec4 Frag_Color;
 uniform sampler2D Texture;
