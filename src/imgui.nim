@@ -29,7 +29,7 @@ proc currentSourceDir(): string {.compileTime.} =
 # when defined(linux) and not defined(emscripten):
 #   {.passL: "-Xlinker -rpath .".}
 
-when not defined(cpp) or defined(cimguiDLL):
+when not (defined(cpp) or defined(compileCppFiles)) or defined(cimguiDLL):
   when defined(windows):
     const imgui_dll* = "cimgui.dll"
   elif defined(macosx):
@@ -39,13 +39,18 @@ when not defined(cpp) or defined(cimguiDLL):
   {.passC: "-DCIMGUI_DEFINE_ENUMS_AND_STRUCTS".}
   {.pragma: imgui_header, header: "cimgui.h".}
 else:
-  {.compile: "imgui/private/cimgui/cimgui.cpp",
-    compile: "imgui/private/cimgui/imgui/imgui.cpp",
-    compile: "imgui/private/cimgui/imgui/imgui_draw.cpp",
-    compile: "imgui/private/cimgui/imgui/imgui_tables.cpp",
-    compile: "imgui/private/cimgui/imgui/imgui_widgets.cpp",
-    compile: "imgui/private/cimgui/imgui/imgui_demo.cpp".}
-  {.pragma: imgui_header, header: currentSourceDir() & "/imgui/private/ncimgui.h".}
+  const undef = "-UCIMGUI_DEFINE_ENUMS_AND_STRUCTS"
+  {.compile("imgui/private/cimgui/cimgui.cpp", undef,)
+    compile("imgui/private/cimgui/imgui/imgui.cpp", undef),
+    compile("imgui/private/cimgui/imgui/imgui_draw.cpp", undef),
+    compile("imgui/private/cimgui/imgui/imgui_tables.cpp", undef),
+    compile("imgui/private/cimgui/imgui/imgui_widgets.cpp", undef),
+    compile("imgui/private/cimgui/imgui/imgui_demo.cpp", undef).}
+  {.passC: "-DCIMGUI_DEFINE_ENUMS_AND_STRUCTS".}
+  {.pragma: imgui_header, header: "cimgui.h".}
+  # {.pragma: imgui_header, header: currentSourceDir() & "/imgui/private/ncimgui.h".}
+
+type constCstring* {.importc:"const char*",nodecl.} = cstring
 
 # Enums
 type
@@ -725,16 +730,16 @@ type
 
 # TypeDefs
 type
-  ImDrawCallback* = proc(parent_list: ptr ImDrawList, cmd: ptr ImDrawCmd): void {.cdecl, varargs.}
+  ImDrawCallback* {.importc,imgui_header.} = proc(parent_list: ptr ImDrawList, cmd: ImDrawCmdConstPtr): void {.cdecl.}
   ImDrawIdx* = uint16
   ImFileHandle* = ptr FILE
-  ImGuiContextHookCallback* = proc(ctx: ptr ImGuiContext, hook: ptr ImGuiContextHook): void {.cdecl, varargs.}
+  ImGuiContextHookCallback* = proc(ctx: ptr ImGuiContext, hook: ptr ImGuiContextHook): void {.cdecl.}
   ImGuiErrorLogCallback* = proc(user_data: pointer, fmt: cstring): void {.cdecl.}
   ImGuiID* = uint32
-  ImGuiInputTextCallback* = proc(data: ptr ImGuiInputTextCallbackData): int32 {.cdecl, varargs.}
-  ImGuiMemAllocFunc* = proc(sz: uint, user_data: pointer): pointer {.cdecl, varargs.}
-  ImGuiMemFreeFunc* = proc(`ptr`: pointer, user_data: pointer): void {.cdecl, varargs.}
-  ImGuiSizeCallback* = proc(data: ptr ImGuiSizeCallbackData): void {.cdecl, varargs.}
+  ImGuiInputTextCallback* = proc(data: ptr ImGuiInputTextCallbackData): int32 {.cdecl.}
+  ImGuiMemAllocFunc* = proc(sz: uint, user_data: pointer): pointer {.cdecl.}
+  ImGuiMemFreeFunc* = proc(`ptr`: pointer, user_data: pointer): void {.cdecl.}
+  ImGuiSizeCallback* = proc(data: ptr ImGuiSizeCallbackData): void {.cdecl.}
   ImGuiTableColumnIdx* = int8
   ImGuiTableDrawChannelIdx* = uint8
   ImPoolIdx* = int32
@@ -791,6 +796,8 @@ type
     elemCount* {.importc: "ElemCount".}: uint32
     userCallback* {.importc: "UserCallback".}: ImDrawCallback
     userCallbackData* {.importc: "UserCallbackData".}: pointer
+  ImDrawCmdConst* {.importc: "const ImDrawCmd", imgui_header.} = ImDrawCmd
+  ImDrawCmdConstPtr* = ptr ImDrawCmdConst
   ImDrawCmdHeader* {.importc: "ImDrawCmdHeader", imgui_header.} = object
     clipRect* {.importc: "ClipRect".}: ImVec4
     textureId* {.importc: "TextureId".}: ImTextureID
@@ -893,7 +900,7 @@ type
     glyphOffset* {.importc: "GlyphOffset".}: ImVec2
     font* {.importc: "Font".}: ptr ImFont
   ImFontBuilderIO* {.importc: "ImFontBuilderIO", imgui_header.} = object
-    fontBuilder_Build* {.importc: "FontBuilder_Build".}: proc(atlas: ptr ImFontAtlas): bool {.cdecl, varargs.}
+    fontBuilder_Build* {.importc: "FontBuilder_Build".}: proc(atlas: ptr ImFontAtlas): bool {.cdecl.}
   ImFontConfig* {.importc: "ImFontConfig", imgui_header.} = object
     fontData* {.importc: "FontData".}: pointer
     fontDataSize* {.importc: "FontDataSize".}: int32
@@ -1211,10 +1218,10 @@ type
     backendPlatformUserData* {.importc: "BackendPlatformUserData".}: pointer
     backendRendererUserData* {.importc: "BackendRendererUserData".}: pointer
     backendLanguageUserData* {.importc: "BackendLanguageUserData".}: pointer
-    getClipboardTextFn* {.importc: "GetClipboardTextFn".}: proc(user_data: pointer): cstring {.cdecl, varargs.}
-    setClipboardTextFn* {.importc: "SetClipboardTextFn".}: proc(user_data: pointer, text: cstring): void {.cdecl, varargs.}
+    getClipboardTextFn* {.importc: "GetClipboardTextFn".}: proc(user_data: pointer): constCstring {.cdecl.}
+    setClipboardTextFn* {.importc: "SetClipboardTextFn".}: proc(user_data: pointer, text: constCstring): void {.cdecl.}
     clipboardUserData* {.importc: "ClipboardUserData".}: pointer
-    imeSetInputScreenPosFn* {.importc: "ImeSetInputScreenPosFn".}: proc(x: int32, y: int32): void {.cdecl, varargs.}
+    imeSetInputScreenPosFn* {.importc: "ImeSetInputScreenPosFn".}: proc(x: int32, y: int32): void {.cdecl.}
     imeWindowHandle* {.importc: "ImeWindowHandle".}: pointer
     mousePos* {.importc: "MousePos".}: ImVec2
     mouseDown* {.importc: "MouseDown".}: array[5, bool]
@@ -1407,12 +1414,12 @@ type
   ImGuiSettingsHandler* {.importc: "ImGuiSettingsHandler", imgui_header.} = object
     typeName* {.importc: "TypeName".}: cstring
     typeHash* {.importc: "TypeHash".}: ImGuiID
-    clearAllFn* {.importc: "ClearAllFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler): void {.cdecl, varargs.}
-    readInitFn* {.importc: "ReadInitFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler): void {.cdecl, varargs.}
-    readOpenFn* {.importc: "ReadOpenFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler, name: cstring): pointer {.cdecl, varargs.}
-    readLineFn* {.importc: "ReadLineFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler, entry: pointer, line: cstring): void {.cdecl, varargs.}
-    applyAllFn* {.importc: "ApplyAllFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler): void {.cdecl, varargs.}
-    writeAllFn* {.importc: "WriteAllFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler, out_buf: ptr ImGuiTextBuffer): void {.cdecl, varargs.}
+    clearAllFn* {.importc: "ClearAllFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler): void {.cdecl.}
+    readInitFn* {.importc: "ReadInitFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler): void {.cdecl.}
+    readOpenFn* {.importc: "ReadOpenFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler, name: cstring): pointer {.cdecl.}
+    readLineFn* {.importc: "ReadLineFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler, entry: pointer, line: cstring): void {.cdecl.}
+    applyAllFn* {.importc: "ApplyAllFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler): void {.cdecl.}
+    writeAllFn* {.importc: "WriteAllFn".}: proc(ctx: ptr ImGuiContext, handler: ptr ImGuiSettingsHandler, out_buf: ptr ImGuiTextBuffer): void {.cdecl.}
     userData* {.importc: "UserData".}: pointer
   ImGuiShrinkWidthItem* {.importc: "ImGuiShrinkWidthItem", imgui_header.} = object
     index* {.importc: "Index".}: int32
@@ -1925,10 +1932,10 @@ type
 
 # Procs
 {.push warning[HoleEnumConv]: off.}
-when not defined(cpp) or defined(cimguiDLL):
+when not (defined(cpp) or defined(compileCppFiles)) or defined(cimguiDLL):
   {.push dynlib: imgui_dll, cdecl, discardable.}
 else:
-  {.push nodecl, discardable.}
+  {.push imgui_header, discardable.}
 
 proc clearAllBits*(self: ptr uint32): void {.importc: "ImBitArray_ClearAllBits".}
 proc clearBit*(self: ptr uint32, n: int32): void {.importc: "ImBitArray_ClearBit".}
@@ -2081,7 +2088,7 @@ proc newImFontAtlas*(): void {.importc: "ImFontAtlas_ImFontAtlas".}
 proc isBuilt*(self: ptr ImFontAtlas): bool {.importc: "ImFontAtlas_IsBuilt".}
 proc setTexID*(self: ptr ImFontAtlas, id: ImTextureID): void {.importc: "ImFontAtlas_SetTexID".}
 proc destroy*(self: ptr ImFontAtlas): void {.importc: "ImFontAtlas_destroy".}
-proc newImFontConfig*(): void {.importc: "ImFontConfig_ImFontConfig".}
+proc newImFontConfig*(): ptr ImFontConfig {.importc: "ImFontConfig_ImFontConfig".}
 proc destroy*(self: ptr ImFontConfig): void {.importc: "ImFontConfig_destroy".}
 proc addChar*(self: ptr ImFontGlyphRangesBuilder, c: ImWchar): void {.importc: "ImFontGlyphRangesBuilder_AddChar".}
 proc addRanges*(self: ptr ImFontGlyphRangesBuilder, ranges: ptr ImWchar): void {.importc: "ImFontGlyphRangesBuilder_AddRanges".}
@@ -2493,7 +2500,7 @@ proc igColorTooltip*(text: cstring, col: ptr float32, flags: ImGuiColorEditFlags
 proc igColumns*(count: int32 = 1, id: cstring = nil, border: bool = true): void {.importc: "igColumns".}
 proc igCombo*(label: cstring, current_item: ptr int32, items: ptr cstring, items_count: int32, popup_max_height_in_items: int32 = -1): bool {.importc: "igCombo_Str_arr".}
 proc igCombo*(label: cstring, current_item: ptr int32, items_separated_by_zeros: cstring, popup_max_height_in_items: int32 = -1): bool {.importc: "igCombo_Str".}
-proc igCombo*(label: cstring, current_item: ptr int32, items_getter: proc(data: pointer, idx: int32, out_text: ptr cstring): bool {.cdecl, varargs.}, data: pointer, items_count: int32, popup_max_height_in_items: int32 = -1): bool {.importc: "igCombo_FnBoolPtr".}
+proc igCombo*(label: cstring, current_item: ptr int32, items_getter: proc(data: pointer, idx: int32, out_text: ptr cstring): bool {.cdecl.}, data: pointer, items_count: int32, popup_max_height_in_items: int32 = -1): bool {.importc: "igCombo_FnBoolPtr".}
 proc igCreateContext*(shared_font_atlas: ptr ImFontAtlas = nil): ptr ImGuiContext {.importc: "igCreateContext".}
 proc igCreateNewWindowSettings*(name: cstring): ptr ImGuiWindowSettings {.importc: "igCreateNewWindowSettings".}
 proc igDataTypeApplyOp*(data_type: ImGuiDataType, op: int32, output: pointer, arg_1: pointer, arg_2: pointer): void {.importc: "igDataTypeApplyOp".}
@@ -2828,7 +2835,7 @@ proc igKeepAliveID*(id: ImGuiID): void {.importc: "igKeepAliveID".}
 proc igLabelText*(label: cstring, fmt: cstring): void {.importc: "igLabelText", varargs.}
 proc igLabelTextV*(label: cstring, fmt: cstring): void {.importc: "igLabelTextV", varargs.}
 proc igListBox*(label: cstring, current_item: ptr int32, items: ptr cstring, items_count: int32, height_in_items: int32 = -1): bool {.importc: "igListBox_Str_arr".}
-proc igListBox*(label: cstring, current_item: ptr int32, items_getter: proc(data: pointer, idx: int32, out_text: ptr cstring): bool {.cdecl, varargs.}, data: pointer, items_count: int32, height_in_items: int32 = -1): bool {.importc: "igListBox_FnBoolPtr".}
+proc igListBox*(label: cstring, current_item: ptr int32, items_getter: proc(data: pointer, idx: int32, out_text: ptr cstring): bool {.cdecl.}, data: pointer, items_count: int32, height_in_items: int32 = -1): bool {.importc: "igListBox_FnBoolPtr".}
 proc igLoadIniSettingsFromDisk*(ini_filename: cstring): void {.importc: "igLoadIniSettingsFromDisk".}
 proc igLoadIniSettingsFromMemory*(ini_data: cstring, ini_size: uint = 0): void {.importc: "igLoadIniSettingsFromMemory".}
 proc igLogBegin*(`type`: ImGuiLogType, auto_open_depth: int32): void {.importc: "igLogBegin".}
@@ -2866,11 +2873,11 @@ proc igOpenPopup*(str_id: cstring, popup_flags: ImGuiPopupFlags = 0.ImGuiPopupFl
 proc igOpenPopup*(id: ImGuiID, popup_flags: ImGuiPopupFlags = 0.ImGuiPopupFlags): void {.importc: "igOpenPopup_ID".}
 proc igOpenPopupEx*(id: ImGuiID, popup_flags: ImGuiPopupFlags = ImGuiPopupFlags.None.ImGuiPopupFlags): void {.importc: "igOpenPopupEx".}
 proc igOpenPopupOnItemClick*(str_id: cstring = nil, popup_flags: ImGuiPopupFlags = 1.ImGuiPopupFlags): void {.importc: "igOpenPopupOnItemClick".}
-proc igPlotEx*(plot_type: ImGuiPlotType, label: cstring, values_getter: proc(data: pointer, idx: int32): float32 {.cdecl, varargs.}, data: pointer, values_count: int32, values_offset: int32, overlay_text: cstring, scale_min: float32, scale_max: float32, frame_size: ImVec2): int32 {.importc: "igPlotEx".}
+proc igPlotEx*(plot_type: ImGuiPlotType, label: cstring, values_getter: proc(data: pointer, idx: int32): float32 {.cdecl.}, data: pointer, values_count: int32, values_offset: int32, overlay_text: cstring, scale_min: float32, scale_max: float32, frame_size: ImVec2): int32 {.importc: "igPlotEx".}
 proc igPlotHistogram*(label: cstring, values: ptr float32, values_count: int32, values_offset: int32 = 0, overlay_text: cstring = nil, scale_min: float32 = high(float32), scale_max: float32 = high(float32), graph_size: ImVec2 = ImVec2(x: 0, y: 0), stride: int32 = sizeof(float32).int32): void {.importc: "igPlotHistogram_FloatPtr".}
-proc igPlotHistogram*(label: cstring, values_getter: proc(data: pointer, idx: int32): float32 {.cdecl, varargs.}, data: pointer, values_count: int32, values_offset: int32 = 0, overlay_text: cstring = nil, scale_min: float32 = high(float32), scale_max: float32 = high(float32), graph_size: ImVec2 = ImVec2(x: 0, y: 0)): void {.importc: "igPlotHistogram_FnFloatPtr".}
+proc igPlotHistogram*(label: cstring, values_getter: proc(data: pointer, idx: int32): float32 {.cdecl.}, data: pointer, values_count: int32, values_offset: int32 = 0, overlay_text: cstring = nil, scale_min: float32 = high(float32), scale_max: float32 = high(float32), graph_size: ImVec2 = ImVec2(x: 0, y: 0)): void {.importc: "igPlotHistogram_FnFloatPtr".}
 proc igPlotLines*(label: cstring, values: ptr float32, values_count: int32, values_offset: int32 = 0, overlay_text: cstring = nil, scale_min: float32 = high(float32), scale_max: float32 = high(float32), graph_size: ImVec2 = ImVec2(x: 0, y: 0), stride: int32 = sizeof(float32).int32): void {.importc: "igPlotLines_FloatPtr".}
-proc igPlotLines*(label: cstring, values_getter: proc(data: pointer, idx: int32): float32 {.cdecl, varargs.}, data: pointer, values_count: int32, values_offset: int32 = 0, overlay_text: cstring = nil, scale_min: float32 = high(float32), scale_max: float32 = high(float32), graph_size: ImVec2 = ImVec2(x: 0, y: 0)): void {.importc: "igPlotLines_FnFloatPtr".}
+proc igPlotLines*(label: cstring, values_getter: proc(data: pointer, idx: int32): float32 {.cdecl.}, data: pointer, values_count: int32, values_offset: int32 = 0, overlay_text: cstring = nil, scale_min: float32 = high(float32), scale_max: float32 = high(float32), graph_size: ImVec2 = ImVec2(x: 0, y: 0)): void {.importc: "igPlotLines_FnFloatPtr".}
 proc igPopAllowKeyboardFocus*(): void {.importc: "igPopAllowKeyboardFocus".}
 proc igPopButtonRepeat*(): void {.importc: "igPopButtonRepeat".}
 proc igPopClipRect*(): void {.importc: "igPopClipRect".}

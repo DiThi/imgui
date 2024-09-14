@@ -1,24 +1,27 @@
 # Copyright 2019, NimGL contributors.
 
 import imgui, imgui/[impl_opengl, impl_glfw]
-import nimgl/[opengl, glfw]
+import opengl
+import nglfw as glfw
 
 proc main() =
-  assert glfwInit()
+  assert glfw.init()
 
-  glfwWindowHint(GLFWContextVersionMajor, 4)
-  glfwWindowHint(GLFWContextVersionMinor, 1)
-  glfwWindowHint(GLFWOpenglForwardCompat, GLFW_TRUE)
-  glfwWindowHint(GLFWOpenglProfile, GLFW_OPENGL_CORE_PROFILE)
-  glfwWindowHint(GLFWResizable, GLFW_FALSE)
+  glfw.windowHint(glfw.ContextVersionMajor, 4)
+  glfw.windowHint(glfw.ContextVersionMinor, 1)
+  glfw.windowHint(glfw.OpenglForwardCompat, glfw.TRUE)
+  glfw.windowHint(glfw.OpenglProfile, glfw.OPENGL_CORE_PROFILE)
+  glfw.windowHint(glfw.Resizable, glfw.FALSE)
 
-  var w: GLFWWindow = glfwCreateWindow(1280, 720)
+  var w: glfw.Window = glfw.createWindow(1280, 720, "GLFW", nil, nil)
   if w == nil:
     quit(-1)
 
   w.makeContextCurrent()
 
-  assert glInit()
+  if not gladLoadGL(glfw.getProcAddress):
+    echo "Could not initialize OpenGL"
+    quit -1
 
   let context = igCreateContext()
   #let io = igGetIO()
@@ -33,7 +36,7 @@ proc main() =
   var counter: int32 = 0
 
   while not w.windowShouldClose:
-    glfwPollEvents()
+    glfw.pollEvents()
 
     igOpenGL3NewFrame()
     igGlfwNewFrame()
@@ -73,6 +76,6 @@ proc main() =
   context.igDestroyContext()
 
   w.destroyWindow()
-  glfwTerminate()
+  glfw.terminate()
 
 main()

@@ -11,19 +11,21 @@
 import ../imgui
 import opengl
 
+const is_opengl_es = defined(emscripten) or defined(ios) or defined(android)
+
 var
-  gGlslVersionString: cstring = when not defined(emscripten): "#version 330 core" else: "#version 300 es"
-  gFontTexture: uint32 = 0
-  gShaderHandle: uint32 = 0
-  gVertHandle: uint32 = 0
-  gFragHandle: uint32 = 0
-  gAttribLocationTex: int32 = 0
-  gAttribLocationProjMtx: int32 = 0
-  gAttribLocationPosition: int32 = 0
-  gAttribLocationUV: int32 = 0
-  gAttribLocationColor: int32 = 0
-  gVboHandle: uint32 = 0
-  gElementsHandle: uint32 = 0
+  gGlslVersionString: cstring = when not is_opengl_es: "#version 330 core" else: "#version 300 es"
+  gFontTexture: GLuint = 0
+  gShaderHandle: GLuint = 0
+  gVertHandle: GLuint = 0
+  gFragHandle: GLuint = 0
+  gAttribLocationTex: GLint = 0
+  gAttribLocationProjMtx: GLint = 0
+  gAttribLocationPosition: GLint = 0
+  gAttribLocationUV: GLint = 0
+  gAttribLocationColor: GLint = 0
+  gVboHandle: GLuint = 0
+  gElementsHandle: GLuint = 0
 
 proc igOpenGL3Init*(): bool =
   ## Initiate Opengl, this proc does nothing here because I assume that you are using modern opengl 3.2>.
@@ -75,7 +77,7 @@ proc igOpenGL3CreateFontsTexture() =
   glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA.ord, text_w, text_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, text_pixels)
 
-  io.fonts.texID = cast[ImTextureID](gFontTexture)
+  io.fonts.texID = cast[ImTextureID](gFontTexture.int)
   glBindTexture(GL_TEXTURE_2D, last_texture.uint32)
 
 proc igOpenGL3CreateDeviceObjects() =
@@ -114,12 +116,12 @@ void main() {
   fragment_shader_glsl = $gGlslVersionString & "\n" & $fragment_shader_glsl
 
   gVertHandle = glCreateShader(GL_VERTEX_SHADER)
-  glShaderSource(gVertHandle, 1, vertex_shader_glsl.addr, nil)
+  glShaderSource(gVertHandle, 1.GLsizei, cast[cstringArray](vertex_shader_glsl.addr), nil)
   glCompileShader(gVertHandle)
   igOpenGL3CheckShader(gVertHandle, "vertex shader")
 
   gFragHandle = glCreateShader(GL_FRAGMENT_SHADER)
-  glShaderSource(gFragHandle, 1, fragment_shader_glsl.addr, nil)
+  glShaderSource(gFragHandle, 1.GLsizei, cast[cstringArray](fragment_shader_glsl.addr), nil)
   glCompileShader(gFragHandle)
   igOpenGL3CheckShader(gFragHandle, "fragment shader")
 
@@ -223,8 +225,8 @@ proc igOpenGL3RenderDrawData*(data: ptr ImDrawData) =
   glEnableVertexAttribArray(gAttribLocationPosition.uint32)
   glEnableVertexAttribArray(gAttribLocationUV.uint32)
   glEnableVertexAttribArray(gAttribLocationColor.uint32)
-  glVertexAttribPointer(gAttribLocationPosition.uint32, 2, EGL_FLOAT, false, ImDrawVert.sizeof().int32, cast[pointer](0)) # @TODO: actually calculate offset
-  glVertexAttribPointer(gAttribLocationUV.uint32, 2, EGL_FLOAT, false, ImDrawVert.sizeof().int32, cast[pointer](8))
+  glVertexAttribPointer(gAttribLocationPosition.uint32, 2, cGL_FLOAT, false, ImDrawVert.sizeof().int32, cast[pointer](0)) # @TODO: actually calculate offset
+  glVertexAttribPointer(gAttribLocationUV.uint32, 2, cGL_FLOAT, false, ImDrawVert.sizeof().int32, cast[pointer](8))
   glVertexAttribPointer(gAttribLocationColor.uint32, 4, GL_UNSIGNED_BYTE, true, ImDrawVert.sizeof().int32, cast[pointer](16))
 
   let pos = data.displayPos
@@ -242,7 +244,7 @@ proc igOpenGL3RenderDrawData*(data: ptr ImDrawData) =
       var pcmd = cmd_list.cmdBuffer.data[cmd_i]
 
       if pcmd.userCallback != nil:
-        pcmd.userCallback(cmd_list, pcmd.addr)
+        pcmd.userCallback(cmd_list, pcmd.addr.ImDrawCmdConstPtr)
       else:
         var clip_rect = ImVec4(x: pcmd.clipRect.x - pos.x, y: pcmd.clipRect.y - pos.y, z: pcmd.clipRect.z - pos.x, w: pcmd.clipRect.w - pos.y)
         if clip_rect.x < fb_width.float32 and clip_rect.y < fb_height.float32 and clip_rect.z >= 0.0f and clip_rect.w >= 0.0f:
