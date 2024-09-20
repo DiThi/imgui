@@ -359,28 +359,162 @@ type
     Alt = 4
     Super = 8
   ImGuiKey* {.pure, size: int32.sizeof.} = enum
-    Tab = 0
-    LeftArrow = 1
-    RightArrow = 2
-    UpArrow = 3
-    DownArrow = 4
-    PageUp = 5
-    PageDown = 6
-    Home = 7
-    End = 8
-    Insert = 9
-    Delete = 10
-    Backspace = 11
-    Space = 12
-    Enter = 13
-    Escape = 14
-    KeyPadEnter = 15
-    A = 16
-    C = 17
-    V = 18
-    X = 19
-    Y = 20
-    Z = 21
+    None = 0
+    Tab = 512
+    LeftArrow = 513
+    RightArrow = 514
+    UpArrow = 515
+    DownArrow = 516
+    PageUp = 517
+    PageDown = 518
+    Home = 519
+    End = 520
+    Insert = 521
+    Delete = 522
+    Backspace = 523
+    Space = 524
+    Enter = 525
+    Escape = 526
+    LeftCtrl = 527
+    LeftShift = 528
+    LeftAlt = 529
+    LeftSuper = 530
+    RightCtrl = 531
+    RightShift = 532
+    RightAlt = 533
+    RightSuper = 534
+    Menu = 535
+    Key0 = 536
+    Key1 = 537
+    Key2 = 538
+    Key3 = 539
+    Key4 = 540
+    Key5 = 541
+    Key6 = 542
+    Key7 = 543
+    Key8 = 544
+    Key9 = 545
+    A = 546
+    B = 547
+    C = 548
+    D = 549
+    E = 550
+    F = 551
+    G = 552
+    H = 553
+    I = 554
+    J = 555
+    K = 556
+    L = 557
+    M = 558
+    N = 559
+    O = 560
+    P = 561
+    Q = 562
+    R = 563
+    S = 564
+    T = 565
+    U = 566
+    V = 567
+    W = 568
+    X = 569
+    Y = 570
+    Z = 571
+    F1 = 572
+    F2 = 573
+    F3 = 574
+    F4 = 575
+    F5 = 576
+    F6 = 577
+    F7 = 578
+    F8 = 579
+    F9 = 580
+    F10 = 581
+    F11 = 582
+    F12 = 583
+    F13 = 584
+    F14 = 585
+    F15 = 586
+    F16 = 587
+    F17 = 588
+    F18 = 589
+    F19 = 590
+    F20 = 591
+    F21 = 592
+    F22 = 593
+    F23 = 594
+    F24 = 595
+    Apostrophe = 596
+    Comma = 597
+    Minus = 598
+    Period = 599
+    Slash = 600
+    Semicolon = 601
+    Equal = 602
+    LeftBracket = 603
+    Backslash = 604
+    RightBracket = 605
+    GraveAccent = 606
+    CapsLock = 607
+    ScrollLock = 608
+    NumLock = 609
+    PrintScreen = 610
+    Pause = 611
+    Keypad0 = 612
+    Keypad1 = 613
+    Keypad2 = 614
+    Keypad3 = 615
+    Keypad4 = 616
+    Keypad5 = 617
+    Keypad6 = 618
+    Keypad7 = 619
+    Keypad8 = 620
+    Keypad9 = 621
+    KeypadDecimal = 622
+    KeypadDivide = 623
+    KeypadMultiply = 624
+    KeypadSubtract = 625
+    KeypadAdd = 626
+    KeypadEnter = 627
+    KeypadEqual = 628
+    AppBack = 629
+    AppForward = 630
+    GamepadStart = 631
+    GamepadBack = 632
+    GamepadFaceLeft = 633
+    GamepadFaceRight = 634
+    GamepadFaceUp = 635
+    GamepadFaceDown = 636
+    GamepadDpadLeft = 637
+    GamepadDpadRight = 638
+    GamepadDpadUp = 639
+    GamepadDpadDown = 640
+    GamepadL1 = 641
+    GamepadR1 = 642
+    GamepadL2 = 643
+    GamepadR2 = 644
+    GamepadL3 = 645
+    GamepadR3 = 646
+    GamepadLStickLeft = 647
+    GamepadLStickRight = 648
+    GamepadLStickUp = 649
+    GamepadLStickDown = 650
+    GamepadRStickLeft = 651
+    GamepadRStickRight = 652
+    GamepadRStickUp = 653
+    GamepadRStickDown = 654
+    MouseLeft = 655
+    MouseRight = 656
+    MouseMiddle = 657
+    MouseX1 = 658
+    MouseX2 = 659
+    MouseWheelX = 660
+    MouseWheelY = 661
+    ModCtrl = 1 shl 12
+    ModShift = 1 shl 13
+    ModAlt = 1 shl 14
+    ModSuper = 1 shl 15
+
   ImGuiLayoutType* {.pure, size: int32.sizeof.} = enum
     Horizontal = 0
     Vertical = 1
@@ -807,7 +941,7 @@ type
     cmdListsCount* {.importc: "CmdListsCount".}: int32
     totalIdxCount* {.importc: "TotalIdxCount".}: int32
     totalVtxCount* {.importc: "TotalVtxCount".}: int32
-    cmdLists* {.importc: "CmdLists".}: UncheckedArray[ptr ImDrawList]
+    cmdLists* {.importc: "CmdLists".}: ImVector[ptr ImDrawList]
     displayPos* {.importc: "DisplayPos".}: ImVec2
     displaySize* {.importc: "DisplaySize".}: ImVec2
     framebufferScale* {.importc: "FramebufferScale".}: ImVec2
@@ -1197,7 +1331,6 @@ type
     mouseDoubleClickTime* {.importc: "MouseDoubleClickTime".}: float32
     mouseDoubleClickMaxDist* {.importc: "MouseDoubleClickMaxDist".}: float32
     mouseDragThreshold* {.importc: "MouseDragThreshold".}: float32
-    keyMap* {.importc: "KeyMap".}: array[22, int32]
     keyRepeatDelay* {.importc: "KeyRepeatDelay".}: float32
     keyRepeatRate* {.importc: "KeyRepeatRate".}: float32
     userData* {.importc: "UserData".}: pointer
@@ -2123,6 +2256,7 @@ proc newImGuiContextHook*(): void {.importc: "ImGuiContextHook_ImGuiContextHook"
 proc destroy*(self: ptr ImGuiContextHook): void {.importc: "ImGuiContextHook_destroy".}
 proc newImGuiContext*(shared_font_atlas: ptr ImFontAtlas): void {.importc: "ImGuiContext_ImGuiContext".}
 proc destroy*(self: ptr ImGuiContext): void {.importc: "ImGuiContext_destroy".}
+proc addKeyEvent*(self: ptr ImGuiIO, key: ImGuiKey, down: bool): void {.importc: "ImGuiIO_AddKeyEvent".}
 proc addFocusEvent*(self: ptr ImGuiIO, focused: bool): void {.importc: "ImGuiIO_AddFocusEvent".}
 proc addInputCharacter*(self: ptr ImGuiIO, c: uint32): void {.importc: "ImGuiIO_AddInputCharacter".}
 proc addInputCharacterUTF16*(self: ptr ImGuiIO, c: ImWchar16): void {.importc: "ImGuiIO_AddInputCharacterUTF16".}
@@ -2832,8 +2966,8 @@ proc igItemInputable*(window: ptr ImGuiWindow, id: ImGuiID): void {.importc: "ig
 proc igItemSize*(size: ImVec2, text_baseline_y: float32 = -1.0f): void {.importc: "igItemSize_Vec2".}
 proc igItemSize*(bb: ImRect, text_baseline_y: float32 = -1.0f): void {.importc: "igItemSize_Rect".}
 proc igKeepAliveID*(id: ImGuiID): void {.importc: "igKeepAliveID".}
-proc igLabelText*(label: cstring, fmt: cstring): void {.importc: "igLabelText", varargs.}
-proc igLabelTextV*(label: cstring, fmt: cstring): void {.importc: "igLabelTextV", varargs.}
+proc igLabelText*(label: cstring, fmt: cstring = nil): void {.importc: "igLabelText", varargs.}
+proc igLabelTextV*(label: cstring, fmt: cstring = nil): void {.importc: "igLabelTextV", varargs.}
 proc igListBox*(label: cstring, current_item: ptr int32, items: ptr cstring, items_count: int32, height_in_items: int32 = -1): bool {.importc: "igListBox_Str_arr".}
 proc igListBox*(label: cstring, current_item: ptr int32, items_getter: proc(data: pointer, idx: int32, out_text: ptr cstring): bool {.cdecl.}, data: pointer, items_count: int32, height_in_items: int32 = -1): bool {.importc: "igListBox_FnBoolPtr".}
 proc igLoadIniSettingsFromDisk*(ini_filename: cstring): void {.importc: "igLoadIniSettingsFromDisk".}

@@ -92,28 +92,6 @@ proc igGlfwInit(window: nglfw.Window, installCallbacks: bool, clientApi: GlfwCli
   io.backendFlags = (io.backendFlags.int32 or ImGuiBackendFlags.HasMouseCursors.int32).ImGuiBackendFlags
   io.backendFlags = (io.backendFlags.int32 or ImGuiBackendFlags.HasSetMousePos.int32).ImGuiBackendFlags
 
-  io.keyMap[ImGuiKey.Tab.int32] = nglfw.KEY_TAB
-  io.keyMap[ImGuiKey.LeftArrow.int32] = nglfw.KEY_LEFT
-  io.keyMap[ImGuiKey.RightArrow.int32] = nglfw.KEY_RIGHT
-  io.keyMap[ImGuiKey.UpArrow.int32] = nglfw.KEY_UP
-  io.keyMap[ImGuiKey.DownArrow.int32] = nglfw.KEY_DOWN
-  io.keyMap[ImGuiKey.PageUp.int32] = nglfw.KEY_PAGE_UP
-  io.keyMap[ImGuiKey.PageDown.int32] = nglfw.KEY_PAGE_DOWN
-  io.keyMap[ImGuiKey.Home.int32] = nglfw.KEY_HOME
-  io.keyMap[ImGuiKey.End.int32] = nglfw.KEY_END
-  io.keyMap[ImGuiKey.Insert.int32] = nglfw.KEY_INSERT
-  io.keyMap[ImGuiKey.Delete.int32] = nglfw.KEY_DELETE
-  io.keyMap[ImGuiKey.Backspace.int32] = nglfw.KEY_BACKSPACE
-  io.keyMap[ImGuiKey.Space.int32] = nglfw.KEY_SPACE
-  io.keyMap[ImGuiKey.Enter.int32] = nglfw.KEY_ENTER
-  io.keyMap[ImGuiKey.Escape.int32] = nglfw.KEY_ESCAPE
-  io.keyMap[ImGuiKey.A.int32] = nglfw.KEY_A
-  io.keyMap[ImGuiKey.C.int32] = nglfw.KEY_C
-  io.keyMap[ImGuiKey.V.int32] = nglfw.KEY_V
-  io.keyMap[ImGuiKey.X.int32] = nglfw.KEY_X
-  io.keyMap[ImGuiKey.Y.int32] = nglfw.KEY_Y
-  io.keyMap[ImGuiKey.Z.int32] = nglfw.KEY_Z
-
   # HELP: If you know how to convert char * to const char * through Nim pragmas
   # and types, I would love to know.
   when not defined(cpp):
