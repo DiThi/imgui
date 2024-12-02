@@ -104,13 +104,15 @@ type
     PressedOnMask = 1008
     Repeat = 1024
     FlattenChildren = 2048
-    AllowItemOverlap = 4096
+    AllowOverlap = 4096
     DontClosePopups = 8192
     AlignTextBaseLine = 32768
     NoKeyModifiers = 65536
     NoHoldingActiveId = 131072
     NoNavFocus = 262144
     NoHoveredOnFocus = 524288
+    NoSetKeyOwner = 1048576
+    NoTestKeyOwner = 2097152
   ImGuiButtonFlags* {.pure, size: int32.sizeof.} = enum
     None = 0
     MouseButtonLeft = 1
@@ -310,26 +312,29 @@ type
     MergedItem = 268435456
   ImGuiInputTextFlags* {.pure, size: int32.sizeof.} = enum
     None = 0
-    CharsDecimal = 1
-    CharsHexadecimal = 2
-    CharsUppercase = 4
-    CharsNoBlank = 8
-    AutoSelectAll = 16
-    EnterReturnsTrue = 32
-    CallbackCompletion = 64
-    CallbackHistory = 128
-    CallbackAlways = 256
-    CallbackCharFilter = 512
-    AllowTabInput = 1024
-    CtrlEnterForNewLine = 2048
-    NoHorizontalScroll = 4096
-    AlwaysOverwrite = 8192
-    ReadOnly = 16384
-    Password = 32768
-    NoUndoRedo = 65536
-    CharsScientific = 131072
-    CallbackResize = 262144
-    CallbackEdit = 524288
+    CharsDecimal = 1 shl 0
+    CharsHexadecimal = 1 shl 1
+    CharsScientific = 1 shl 2
+    CharsUppercase = 1 shl 3
+    CharsNoBlank = 1 shl 4
+    AllowTabInput = 1 shl 5
+    EnterReturnsTrue = 1 shl 6
+    EscapeClearsAll = 1 shl 7
+    CtrlEnterForNewLine = 1 shl 8
+    ReadOnly = 1 shl 9
+    Password = 1 shl 10
+    AlwaysOverwrite = 1 shl 11
+    AutoSelectAll = 1 shl 12
+    ParseEmptyRefVal = 1 shl 13
+    DisplayEmptyRefVal = 1 shl 14
+    NoHorizontalScroll = 1 shl 15
+    NoUndoRedo = 1 shl 16
+    CallbackCompletion = 1 shl 17
+    CallbackHistory = 1 shl 18
+    CallbackAlways = 1 shl 19
+    CallbackCharFilter = 1 shl 20
+    CallbackResize = 1 shl 21
+    CallbackEdit = 1 shl 22
   ImGuiItemFlags* {.pure, size: int32.sizeof.} = enum
     None = 0
     NoTabStop = 1
@@ -652,7 +657,8 @@ type
     SpanAllColumns = 2
     AllowDoubleClick = 4
     Disabled = 8
-    AllowItemOverlap = 16
+    AllowOverlap = 16
+    Highlight = 32
   ImGuiSeparatorFlags* {.pure, size: int32.sizeof.} = enum
     None = 0
     Horizontal = 1
@@ -812,7 +818,7 @@ type
     None = 0
     Selected = 1
     Framed = 2
-    AllowItemOverlap = 4
+    AllowOverlap = 4
     NoTreePushOnOpen = 8
     NoAutoOpenOnLog = 16
     CollapsingHeader = 26
@@ -861,6 +867,17 @@ type
     Popup = 67108864
     Modal = 134217728
     ChildMenu = 268435456
+  ImGuiChildFlags* {.pure, size: int32.sizeof.} = enum
+    None = 0
+    Borders = 1
+    AlwaysUseWindowPadding = 2
+    ResizeX = 4
+    ResizeY = 8
+    AutoResizeX = 16
+    AutoResizeY = 32
+    AlwaysAutoResize = 64
+    FrameStyle = 128
+    NavFlattened = 256
 
 # TypeDefs
 type
@@ -2552,9 +2569,9 @@ proc igAlignTextToFramePadding*(): void {.importc: "igAlignTextToFramePadding".}
 proc igArrowButton*(str_id: cstring, dir: ImGuiDir): bool {.importc: "igArrowButton".}
 proc igArrowButtonEx*(str_id: cstring, dir: ImGuiDir, size_arg: ImVec2, flags: ImGuiButtonFlags = 0.ImGuiButtonFlags): bool {.importc: "igArrowButtonEx".}
 proc igBegin*(name: cstring, p_open: ptr bool = nil, flags: ImGuiWindowFlags = 0.ImGuiWindowFlags): bool {.importc: "igBegin".}
-proc igBeginChild*(str_id: cstring, size: ImVec2 = ImVec2(x: 0, y: 0), border: bool = false, flags: ImGuiWindowFlags = 0.ImGuiWindowFlags): bool {.importc: "igBeginChild_Str".}
-proc igBeginChild*(id: ImGuiID, size: ImVec2 = ImVec2(x: 0, y: 0), border: bool = false, flags: ImGuiWindowFlags = 0.ImGuiWindowFlags): bool {.importc: "igBeginChild_ID".}
-proc igBeginChildEx*(name: cstring, id: ImGuiID, size_arg: ImVec2, border: bool, flags: ImGuiWindowFlags): bool {.importc: "igBeginChildEx".}
+proc igBeginChild*(str_id: cstring, size: ImVec2 = ImVec2(x: 0, y: 0), child_flags: ImGuiChildFlags = 0.ImGuiChildFlags, flags: ImGuiWindowFlags = 0.ImGuiWindowFlags): bool {.importc: "igBeginChild_Str".}
+proc igBeginChild*(id: ImGuiID, size: ImVec2 = ImVec2(x: 0, y: 0), child_flags: ImGuiChildFlags = 0.ImGuiChildFlags, flags: ImGuiWindowFlags = 0.ImGuiWindowFlags): bool {.importc: "igBeginChild_ID".}
+proc igBeginChildEx*(name: cstring, id: ImGuiID, size_arg: ImVec2, child_flags: ImGuiChildFlags = 0.ImGuiChildFlags, flags: ImGuiWindowFlags): bool {.importc: "igBeginChildEx".}
 proc igBeginChildFrame*(id: ImGuiID, size: ImVec2, flags: ImGuiWindowFlags = 0.ImGuiWindowFlags): bool {.importc: "igBeginChildFrame".}
 proc igBeginColumns*(str_id: cstring, count: int32, flags: ImGuiOldColumnFlags = 0.ImGuiOldColumnFlags): void {.importc: "igBeginColumns".}
 proc igBeginCombo*(label: cstring, preview_value: cstring, flags: ImGuiComboFlags = 0.ImGuiComboFlags): bool {.importc: "igBeginCombo".}
@@ -2727,8 +2744,6 @@ proc igGetColumnWidth*(column_index: int32 = -1): float32 {.importc: "igGetColum
 proc igGetColumnsCount*(): int32 {.importc: "igGetColumnsCount".}
 proc igGetColumnsID*(str_id: cstring, count: int32): ImGuiID {.importc: "igGetColumnsID".}
 proc igGetContentRegionAvailNonUDT*(pOut: ptr ImVec2): void {.importc: "igGetContentRegionAvail".}
-proc igGetContentRegionMaxNonUDT*(pOut: ptr ImVec2): void {.importc: "igGetContentRegionMax".}
-proc igGetContentRegionMaxAbsNonUDT*(pOut: ptr ImVec2): void {.importc: "igGetContentRegionMaxAbs".}
 proc igGetCurrentContext*(): ptr ImGuiContext {.importc: "igGetCurrentContext".}
 proc igGetCurrentTable*(): ptr ImGuiTable {.importc: "igGetCurrentTable".}
 proc igGetCurrentWindow*(): ptr ImGuiWindow {.importc: "igGetCurrentWindow".}
@@ -2895,8 +2910,8 @@ proc igImTriangleClosestPointNonUDT*(pOut: ptr ImVec2, a: ImVec2, b: ImVec2, c: 
 proc igImTriangleContainsPoint*(a: ImVec2, b: ImVec2, c: ImVec2, p: ImVec2): bool {.importc: "igImTriangleContainsPoint".}
 proc igImUpperPowerOfTwo*(v: int32): int32 {.importc: "igImUpperPowerOfTwo".}
 proc igImage*(user_texture_id: ImTextureID, size: ImVec2, uv0: ImVec2 = ImVec2(x: 0, y: 0), uv1: ImVec2 = ImVec2(x: 1, y: 1), tint_col: ImVec4 = ImVec4(x: 1, y: 1, z: 1, w: 1), border_col: ImVec4 = ImVec4(x: 0, y: 0, z: 0, w: 0)): void {.importc: "igImage".}
-proc igImageButton*(user_texture_id: ImTextureID, size: ImVec2, uv0: ImVec2 = ImVec2(x: 0, y: 0), uv1: ImVec2 = ImVec2(x: 1, y: 1), frame_padding: int32 = -1, bg_col: ImVec4 = ImVec4(x: 0, y: 0, z: 0, w: 0), tint_col: ImVec4 = ImVec4(x: 1, y: 1, z: 1, w: 1)): bool {.importc: "igImageButton".}
-proc igImageButtonEx*(id: ImGuiID, texture_id: ImTextureID, size: ImVec2, uv0: ImVec2, uv1: ImVec2, padding: ImVec2, bg_col: ImVec4, tint_col: ImVec4): bool {.importc: "igImageButtonEx".}
+proc igImageButton*(str_id: cstring, user_texture_id: ImTextureID, size: ImVec2, uv0: ImVec2 = ImVec2(x: 0, y: 0), uv1: ImVec2 = ImVec2(x: 1, y: 1), bg_col: ImVec4 = ImVec4(x: 0, y: 0, z: 0, w: 0), tint_col: ImVec4 = ImVec4(x: 1, y: 1, z: 1, w: 1)): bool {.importc: "igImageButton".}
+proc igImageButtonEx*(id: ImGuiID, texture_id: ImTextureID, size: ImVec2, uv0: ImVec2, uv1: ImVec2, bg_col: ImVec4, tint_col: ImVec4, flags: ImGuiButtonFlags): bool {.importc: "igImageButtonEx".}
 proc igIndent*(indent_w: float32 = 0.0f): void {.importc: "igIndent".}
 proc igInitialize*(context: ptr ImGuiContext): void {.importc: "igInitialize".}
 proc igInputDouble*(label: cstring, v: ptr float64, step: float64 = 0.0, step_fast: float64 = 0.0, format: cstring = "%.6f", flags: ImGuiInputTextFlags = 0.ImGuiInputTextFlags): bool {.importc: "igInputDouble".}
@@ -3095,7 +3110,7 @@ proc igSetCursorScreenPos*(pos: ImVec2): void {.importc: "igSetCursorScreenPos".
 proc igSetDragDropPayload*(`type`: cstring, data: pointer, sz: uint, cond: ImGuiCond = 0.ImGuiCond): bool {.importc: "igSetDragDropPayload".}
 proc igSetFocusID*(id: ImGuiID, window: ptr ImGuiWindow): void {.importc: "igSetFocusID".}
 proc igSetHoveredID*(id: ImGuiID): void {.importc: "igSetHoveredID".}
-proc igSetItemAllowOverlap*(): void {.importc: "igSetItemAllowOverlap".}
+proc igSetNextItemAllowOverlap*(): void {.importc: "igSetNextItemAllowOverlap".}
 proc igSetItemDefaultFocus*(): void {.importc: "igSetItemDefaultFocus".}
 proc igSetItemUsingMouseWheel*(): void {.importc: "igSetItemUsingMouseWheel".}
 proc igSetKeyboardFocusHere*(offset: int32 = 0): void {.importc: "igSetKeyboardFocusHere".}
